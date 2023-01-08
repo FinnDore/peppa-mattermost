@@ -1,5 +1,10 @@
 /* eslint-disable react/display-name */
-import { DndContext, DragEndEvent, useDroppable } from "@dnd-kit/core";
+import {
+    DndContext,
+    DragEndEvent,
+    DragOverlay,
+    useDroppable,
+} from "@dnd-kit/core";
 import {
     rectSortingStrategy,
     SortableContext,
@@ -70,11 +75,15 @@ const Home: NextPage = () => {
     const { setNodeRef: adminsSetNodeRef } = useDroppable({ id: "admin" });
     const { setNodeRef: teamSetNodeRef } = useDroppable({ id: "team" });
     const { setNodeRef: unsortedSetNodeRef } = useDroppable({ id: "unsorted" });
+    const [activeId, setActiveId] = useState<string | null>(null);
+    const activeItem = allUsers.find((x) => x.name === activeId);
     const onDragEnd = (e: DragEndEvent) => {
         const overId: "admins" | "team" | "unsorted" =
             e.over?.data.current?.sortable.containerId;
         const activeId: "admins" | "team" | "unsorted" =
             e.active.data.current?.sortable.containerId;
+        console.log(e);
+        setActiveId(null);
 
         if (overId === activeId) return;
         const currentUser = allUsers.find((x) => x.name === e.active.id);
@@ -92,9 +101,19 @@ const Home: NextPage = () => {
             return newUsers;
         });
     };
+
+    const handleDragStart = ({ active }: any) => setActiveId(active.id);
+    const handleDragEnd = ({ active, over }: any) => {
+        setActiveId(null);
+    };
+
     return (
         <>
-            <DndContext onDragEnd={onDragEnd}>
+            <DndContext
+                onDragEnd={onDragEnd}
+                onDragStart={handleDragStart}
+                onDragCancel={handleDragEnd}
+            >
                 <main>
                     <h1 className="mb-2 text-4xl font-bold">Users</h1>
                     <h2 className="mb-4 text-xl font-bold underline">Admins</h2>
@@ -103,7 +122,7 @@ const Home: NextPage = () => {
                         items={currentUsers.admins.map((x) => x.name)}
                     >
                         <div
-                            className="mb-4 flex flex-wrap"
+                            className=" mb-4 flex w-full flex-wrap"
                             ref={adminsSetNodeRef}
                         >
                             {currentUsers.admins.map((user) => (
@@ -115,7 +134,7 @@ const Home: NextPage = () => {
                             ))}
                         </div>
                     </SortableContext>
-                    <h2 className="mb-4 text-xl font-bold  underline">
+                    <h2 className="mb-4  text-xl font-bold  underline">
                         Team Members
                     </h2>
                     <SortableContext
@@ -124,7 +143,7 @@ const Home: NextPage = () => {
                         strategy={rectSortingStrategy}
                     >
                         <div
-                            className="mb-4 flex flex-wrap"
+                            className="mb-4 flex w-full flex-wrap"
                             ref={teamSetNodeRef}
                         >
                             {currentUsers.team.map((user) => (
@@ -144,7 +163,7 @@ const Home: NextPage = () => {
                         items={currentUsers.unsorted.map((x) => x.name)}
                     >
                         <div
-                            className="mb-4 flex flex-wrap"
+                            className="mb-4 flex w-full flex-wrap "
                             ref={unsortedSetNodeRef}
                         >
                             {currentUsers.unsorted.map((user) => (
@@ -157,6 +176,11 @@ const Home: NextPage = () => {
                         </div>
                     </SortableContext>
                 </main>
+                <DragOverlay>
+                    {activeItem && (
+                        <Person pfp={activeItem.pfp} name={activeItem.name} />
+                    )}
+                </DragOverlay>
             </DndContext>
         </>
     );
