@@ -8,7 +8,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import clsx from "clsx";
 import { type NextPage } from "next";
-import { CSSProperties, forwardRef, HTMLProps } from "react";
+import { CSSProperties, forwardRef, HTMLProps, useState } from "react";
 import { Pfp } from "../components/pfp";
 const users = {
     admins: [
@@ -64,65 +64,77 @@ const users = {
 } as const;
 
 const Home: NextPage = () => {
-    const { setNodeRef: adminsSetNodeRef } = useDroppable({ id: "admins" });
+    const [currentUsers, setUsers] = useState<typeof users>(users);
+    const { setNodeRef: adminsSetNodeRef } = useDroppable({ id: "admin" });
+    const { setNodeRef: teamSetNodeRef } = useDroppable({ id: "team" });
+    const { setNodeRef: unsortedSetNodeRef } = useDroppable({ id: "unsorted" });
+
     return (
         <>
-            <main>
-                <h1 className="mb-2 text-4xl font-bold">Users</h1>
-                <h2 className="mb-4 text-2xl font-bold underline">Admins</h2>
-                <div className="mb-4 flex flex-wrap">
-                    <DndContext>
-                        <SortableContext
-                            items={users.admins.map((x) => x.name)}
+            <DndContext onDragEnd={(...rest) => console.log(rest)}>
+                <main>
+                    <h1 className="mb-2 text-4xl font-bold">Users</h1>
+                    <h2 className="mb-4 text-xl font-bold underline">Admins</h2>
+                    <SortableContext
+                        id="admin"
+                        items={currentUsers.admins.map((x) => x.name)}
+                    >
+                        <div
+                            className="mb-4 flex flex-wrap"
+                            ref={adminsSetNodeRef}
                         >
-                            {users.admins.map((user) => (
+                            {currentUsers.admins.map((user) => (
                                 <Person
                                     pfp={user.pfp}
                                     key={user.name}
                                     name={user.name}
                                 />
                             ))}
-                        </SortableContext>
-                    </DndContext>
-                </div>
-                <h2 className="mb-4 text-2xl font-bold  underline">
-                    Team Members
-                </h2>
-                <div className="mb-4 flex flex-wrap">
-                    <DndContext>
-                        <SortableContext
-                            items={users.team.map((x) => x.name)}
-                            strategy={rectSortingStrategy}
+                        </div>
+                    </SortableContext>
+                    <h2 className="mb-4 text-xl font-bold  underline">
+                        Team Members
+                    </h2>
+                    <SortableContext
+                        id="team"
+                        items={currentUsers.team.map((x) => x.name)}
+                        strategy={rectSortingStrategy}
+                    >
+                        <div
+                            className="mb-4 flex flex-wrap"
+                            ref={teamSetNodeRef}
                         >
-                            {users.team.map((user) => (
+                            {currentUsers.team.map((user) => (
                                 <Person
                                     pfp={user.pfp}
                                     key={user.name}
                                     name={user.name}
                                 />
                             ))}
-                        </SortableContext>
-                    </DndContext>
-                </div>
-                <h2 className="mb-4 text-2xl font-bold  underline">
-                    Unsorted:
-                </h2>
-                <div className="mb-4 flex flex-wrap">
-                    <DndContext>
-                        <SortableContext
-                            items={users.unsorted.map((x) => x.name)}
+                        </div>
+                    </SortableContext>
+                    <h2 className="mb-4 text-xl font-bold  underline">
+                        Unsorted:
+                    </h2>
+                    <SortableContext
+                        id="unsorted"
+                        items={currentUsers.unsorted.map((x) => x.name)}
+                    >
+                        <div
+                            className="mb-4 flex flex-wrap"
+                            ref={unsortedSetNodeRef}
                         >
-                            {users.unsorted.map((user) => (
+                            {currentUsers.unsorted.map((user) => (
                                 <Person
                                     pfp={user.pfp}
                                     key={user.name}
                                     name={user.name}
                                 />
                             ))}
-                        </SortableContext>
-                    </DndContext>
-                </div>
-            </main>
+                        </div>
+                    </SortableContext>
+                </main>
+            </DndContext>
         </>
     );
 };
