@@ -1,5 +1,5 @@
 /* eslint-disable react/display-name */
-import { DndContext, useDroppable } from "@dnd-kit/core";
+import { DndContext, DragEndEvent, useDroppable } from "@dnd-kit/core";
 import {
     rectSortingStrategy,
     SortableContext,
@@ -61,22 +61,45 @@ const users = {
             pfp: "/pfp/wyz.webp",
         },
     ],
-} as const;
+};
+
+const allUsers = [...users.admins, ...users.team, ...users.unsorted] as const;
 
 const Home: NextPage = () => {
-    const [currentUsers, setUsers] = useState<typeof users>(users);
+    const [currentUsers, setUsers] = useState<typeof users>({ ...users });
     const { setNodeRef: adminsSetNodeRef } = useDroppable({ id: "admin" });
     const { setNodeRef: teamSetNodeRef } = useDroppable({ id: "team" });
     const { setNodeRef: unsortedSetNodeRef } = useDroppable({ id: "unsorted" });
+    const onDragEnd = (e: DragEndEvent) => {
+        const overId: "admins" | "team" | "unsorted" =
+            e.over?.data.current?.sortable.containerId;
+        const activeId: "admins" | "team" | "unsorted" =
+            e.active.data.current?.sortable.containerId;
 
+        if (overId === activeId) return;
+        const currentUser = allUsers.find((x) => x.name === e.active.id);
+        if (!currentUser) return;
+
+        setUsers((prev) => {
+            const newUsers = { ...currentUsers };
+
+            if (!newUsers[overId] || !newUsers[activeId]) return prev;
+
+            newUsers[overId].push(currentUser);
+            newUsers[activeId] = newUsers[activeId].filter(
+                (x) => x.name !== currentUser.name
+            );
+            return newUsers;
+        });
+    };
     return (
         <>
-            <DndContext onDragEnd={(...rest) => console.log(rest)}>
+            <DndContext onDragEnd={onDragEnd}>
                 <main>
                     <h1 className="mb-2 text-4xl font-bold">Users</h1>
                     <h2 className="mb-4 text-xl font-bold underline">Admins</h2>
                     <SortableContext
-                        id="admin"
+                        id="admins"
                         items={currentUsers.admins.map((x) => x.name)}
                     >
                         <div
