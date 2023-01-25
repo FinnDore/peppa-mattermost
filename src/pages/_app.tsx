@@ -19,6 +19,7 @@ const MyApp: AppType<{ session: Session | null }> = ({
                 <picture className="absolute -z-10 ">
                     <img src="/peppa.png" alt="Peppa Pig" className="w-44" />
                 </picture>
+
                 <div className="flex h-28 justify-end ">
                     <h1 className="my-auto mr-4 text-3xl font-bold">Finn</h1>
                     <div className="my-auto mr-4 h-12">
